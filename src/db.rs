@@ -110,7 +110,25 @@ pub async fn connect(config: &DatabaseConfig) -> Result<DatabasePool, sqlx::Erro
     }
 }
 
-// Re-export specific connectors if you still need manual control
+impl DatabasePool {
+    #[cfg(feature = "sqlite")]
+    pub fn sqlite_pool(&self) -> Option<&Pool<Sqlite>> {
+        if let DatabasePool::Sqlite(pool) = self {
+            Some(pool)
+        } else {
+            None
+        }
+    }
+
+    #[cfg(feature = "postgres")]
+    pub fn postgres_pool(&self) -> Option<&Pool<Postgres>> {
+        if let DatabasePool::Postgres(pool) = self {
+            Some(pool)
+        } else {
+            None
+        }
+    }
+}
 #[cfg(feature = "sqlite")]
 pub async fn connect_sqlite(url: &str) -> Result<Pool<Sqlite>, sqlx::Error> {
     sqlx::sqlite::SqlitePoolOptions::new().connect(url).await
