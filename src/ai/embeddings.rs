@@ -7,7 +7,7 @@ pub struct FastEmbedAdapter {
 }
 
 impl FastEmbedAdapter {
-    pub fn new() -> DomainResult<Self> {
+    pub fn new() -> anyhow::Result<Self> {
         let mut options = InitOptions::default();
         options.model_name = EmbeddingModel::AllMiniLML6V2;
         options.show_download_progress = false;
