@@ -1,15 +1,20 @@
 [package]
 name = "k-core"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2024"
 
 [features]
-default = ["logging", "db-sqlx", "auth"]
+default = ["logging", "db-sqlx", "auth", "http"]
 logging = ["dep:tracing", "dep:tracing-subscriber"]
 db-sqlx = ["dep:sqlx"]
-postgres = ["db-sqlx", "sqlx/postgres"] 
-sqlite = ["db-sqlx", "sqlx/sqlite"]
+postgres = ["db-sqlx", "sqlx/postgres", "tower-sessions-sqlx-store?/postgres"] 
+sqlite = ["db-sqlx", "sqlx/sqlite", "tower-sessions-sqlx-store?/sqlite"]
 auth = ["dep:tower-sessions"]
+sessions-db = ["auth", "dep:tower-sessions-sqlx-store"]
+ai = ["dep:fastembed", "dep:qdrant-client"]
+broker = []
+broker-nats = ["broker", "dep:async-nats"]
+http = ["dep:axum", "dep:tower", "dep:tower-http", "dep:time", "logging"]
 
 [dependencies]
 # Error handling
@@ -26,7 +31,6 @@ sqlx = { version = "0.8.6", features = [
     "chrono",
     "uuid",
 ], optional = true }
-sqlx-core = { version = "0.8.6", optional = true }
 
 # Logging
 tracing = { version = "0.1", optional = true }
@@ -37,8 +41,23 @@ tracing-subscriber = { version = "0.3.22", features = [
 
 # Auth
 tower-sessions = { version = "0.14.0", optional = true }
+tower-sessions-sqlx-store = { version = "0.15", optional = true}
 
 # Utils
 chrono = { version = "0.4.42", features = ["serde"] }
 uuid = { version = "1.19.0", features = ["v4", "serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
+async-trait = "0.1.89"
+
+# AI
+fastembed = { version = "5.4", optional = true }
+qdrant-client = { version = "1.16", optional = true }
+
+# Broker
+async-nats = { version = "0.45", optional = true }
+
+# HTTP
+axum = { version = "0.8.8", features = ["macros"], optional = true }
+tower = { version = "0.5.2", optional = true }
+tower-http = { version = "0.6.2", features = ["cors", "trace"], optional = true}
+time = { version = "0.3", optional = true }
