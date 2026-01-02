@@ -19,20 +19,24 @@ pub struct DatabaseConfig {
 impl Default for DatabaseConfig {
     fn default() -> Self {
         #[cfg(feature = "sqlite")]
-        Self {
-            url: "sqlite::memory:".to_string(),
-            max_connections: 5,
-            min_connections: 1,
-            acquire_timeout: Duration::from_secs(30),
-        };
+        {
+            Self {
+                url: "sqlite::memory:".to_string(),
+                max_connections: 5,
+                min_connections: 1,
+                acquire_timeout: Duration::from_secs(30),
+            }
+        }
 
         #[cfg(all(not(feature = "sqlite"), feature = "postgres"))]
-        Self {
-            url: "postgres://localhost:5432/mydb".to_string(),
-            max_connections: 5,
-            min_connections: 1,
-            acquire_timeout: Duration::from_secs(30),
-        };
+        {
+            Self {
+                url: "postgres://localhost:5432/mydb".to_string(),
+                max_connections: 5,
+                min_connections: 1,
+                acquire_timeout: Duration::from_secs(30),
+            }
+        }
 
         #[cfg(not(any(feature = "sqlite", feature = "postgres")))]
         Self {
