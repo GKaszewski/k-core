@@ -1775,7 +1775,7 @@ dependencies = [
 
 [[package]]
 name = "k-core"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "anyhow",
  "async-nats",
@@ -1783,6 +1783,8 @@ dependencies = [
  "axum 0.8.8",
  "chrono",
  "fastembed",
+ "futures-core",
+ "futures-util",
  "qdrant-client",
  "serde",
  "sqlx",

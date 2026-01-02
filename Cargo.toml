@@ -1,6 +1,6 @@
 [package]
 name = "k-core"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2024"
 
 [features]
@@ -13,7 +13,7 @@ auth = ["dep:tower-sessions"]
 sessions-db = ["auth", "dep:tower-sessions-sqlx-store"]
 ai = ["dep:fastembed", "dep:qdrant-client"]
 broker = []
-broker-nats = ["broker", "dep:async-nats"]
+broker-nats = ["broker", "dep:async-nats", "dep:futures-util", "dep:futures-core"]
 http = ["dep:axum", "dep:tower", "dep:tower-http", "dep:time", "logging"]
 
 [dependencies]
@@ -61,3 +61,6 @@ axum = { version = "0.8.8", features = ["macros"], optional = true }
 tower = { version = "0.5.2", optional = true }
 tower-http = { version = "0.6.2", features = ["cors", "trace"], optional = true}
 time = { version = "0.3", optional = true }
+
+futures-util = { version = "0.3", optional = true }
+futures-core = {version = "0.3", optional = true }
