@@ -1,5 +1,5 @@
+use sqlx::Pool;
 use std::time::Duration;
-use sqlx::{Pool};
 
 #[cfg(feature = "sqlite")]
 use sqlx::Sqlite;
@@ -12,15 +12,53 @@ use sqlx::Postgres;
 pub struct DatabaseConfig {
     pub url: String,
     pub max_connections: u32,
+    pub min_connections: u32,
     pub acquire_timeout: Duration,
 }
 
 impl Default for DatabaseConfig {
     fn default() -> Self {
+        #[cfg(feature = "sqlite")]
         Self {
             url: "sqlite::memory:".to_string(),
             max_connections: 5,
+            min_connections: 1,
             acquire_timeout: Duration::from_secs(30),
+        };
+
+        #[cfg(all(not(feature = "sqlite"), feature = "postgres"))]
+        Self {
+            url: "postgres://localhost:5432/mydb".to_string(),
+            max_connections: 5,
+            min_connections: 1,
+            acquire_timeout: Duration::from_secs(30),
+        };
+
+        #[cfg(not(any(feature = "sqlite", feature = "postgres")))]
+        Self {
+            url: "".to_string(),
+            max_connections: 5,
+            min_connections: 1,
+            acquire_timeout: Duration::from_secs(30),
+        }
+    }
+}
+
+impl DatabaseConfig {
+    pub fn new(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            ..Default::default()
+        }
+    }
+
+    #[cfg(feature = "sqlite")]
+    pub fn in_memory() -> Self {
+        Self {
+            url: "sqlite::memory:".to_string(),
+            max_connections: 1, // SQLite in-memory is single-connection
+            min_connections: 1,
+            ..Default::default()
         }
     }
 }
@@ -50,14 +88,15 @@ pub async fn connect(config: &DatabaseConfig) -> Result<DatabasePool, sqlx::Erro
 
     // 2. Fallback to Sqlite if the feature is enabled
     #[cfg(feature = "sqlite")]
-    let pool = sqlx::sqlite::SqlitePoolOptions::new()
-        .max_connections(config.max_connections)
-        .acquire_timeout(config.acquire_timeout)
-        .connect(&config.url)
-        .await?;
-    
-    #[cfg(feature = "sqlite")]
-    Ok(DatabasePool::Sqlite(pool));
+    {
+        let pool = sqlx::sqlite::SqlitePoolOptions::new()
+            .max_connections(config.max_connections)
+            .acquire_timeout(config.acquire_timeout)
+            .connect(&config.url)
+            .await?;
+
+        Ok(DatabasePool::Sqlite(pool))
+    }
 
     #[cfg(not(feature = "sqlite"))]
     {
@@ -68,7 +107,7 @@ pub async fn connect(config: &DatabaseConfig) -> Result<DatabasePool, sqlx::Erro
 }
 
 // Re-export specific connectors if you still need manual control
-#[cfg(feature = "postgres")]
+#[cfg(feature = "sqlite")]
 pub async fn connect_sqlite(url: &str) -> Result<Pool<Sqlite>, sqlx::Error> {
-   sqlx::sqlite::SqlitePoolOptions::new().connect(url).await
+    sqlx::sqlite::SqlitePoolOptions::new().connect(url).await
 }
