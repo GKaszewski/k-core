@@ -1,13 +1,14 @@
 [package]
 name = "k-core"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 [features]
 default = ["logging", "db-sqlx", "auth"]
 logging = ["dep:tracing", "dep:tracing-subscriber"]
 db-sqlx = ["dep:sqlx"]
-postgres = ["sqlx/postgres"]
+postgres = ["db-sqlx", "sqlx/postgres"] 
+sqlite = ["db-sqlx", "sqlx/sqlite"]
 auth = ["dep:tower-sessions"]
 
 [dependencies]
@@ -22,8 +23,6 @@ tokio = { version = "1.48.0", features = ["full"], optional = true }
 sqlx = { version = "0.8.6", features = [
     "runtime-tokio",
     "macros",
-    "sqlite",
-    "postgres",
     "chrono",
     "uuid",
 ], optional = true }

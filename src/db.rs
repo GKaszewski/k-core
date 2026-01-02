@@ -1,5 +1,8 @@
 use std::time::Duration;
-use sqlx::{Pool, Sqlite};
+use sqlx::{Pool};
+
+#[cfg(feature = "sqlite")]
+use sqlx::Sqlite;
 
 #[cfg(feature = "postgres")]
 use sqlx::Postgres;
@@ -26,6 +29,7 @@ impl Default for DatabaseConfig {
 /// The Template uses this type so it doesn't care if it's Sqlite or Postgres.
 #[derive(Clone, Debug)]
 pub enum DatabasePool {
+    #[cfg(feature = "sqlite")]
     Sqlite(Pool<Sqlite>),
     #[cfg(feature = "postgres")]
     Postgres(Pool<Postgres>),
@@ -44,17 +48,27 @@ pub async fn connect(config: &DatabaseConfig) -> Result<DatabasePool, sqlx::Erro
         return Ok(DatabasePool::Postgres(pool));
     }
 
-    // 2. Default to Sqlite
+    // 2. Fallback to Sqlite if the feature is enabled
+    #[cfg(feature = "sqlite")]
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(config.max_connections)
         .acquire_timeout(config.acquire_timeout)
         .connect(&config.url)
         .await?;
     
-    Ok(DatabasePool::Sqlite(pool))
+    #[cfg(feature = "sqlite")]
+    Ok(DatabasePool::Sqlite(pool));
+
+    #[cfg(not(feature = "sqlite"))]
+    {
+        Err(sqlx::Error::Configuration(
+            "No supported database features enabled".into(),
+        ))
+    }
 }
 
 // Re-export specific connectors if you still need manual control
+#[cfg(feature = "postgres")]
 pub async fn connect_sqlite(url: &str) -> Result<Pool<Sqlite>, sqlx::Error> {
    sqlx::sqlite::SqlitePoolOptions::new().connect(url).await
 }
