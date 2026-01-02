@@ -1,3 +1,5 @@
+#[cfg(feature = "db-sqlx")]
+use sqlx::Pool;
 use std::time::Duration;
 
 #[cfg(feature = "sqlite")]
